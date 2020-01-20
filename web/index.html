@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Mail Manager</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src ="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.9/angular.min.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            var app = angular.module("mailManager",[]);
+            app.controller("mailController",function($scope, $http){
+                        $scope.mailSearch ="";
+                        $http({
+                            url:'mailServlet',
+                            method:"GET",
+                        }).then(function(response){
+                            $scope.mailList=response.data;
+                            console.log($scope.mailList);
+                        },function (response){
+
+                        });
+                        $scope.mailSerach = function (mail) {
+                            var text = $scope.mailSearch;
+                            if (mail.expediteur.toLowerCase().includes(text.toLowerCase())) {
+                                return true;
+                            }
+                            return false;
+                        }
+                        $http.defaults.headers.post["Content-Type"] = "application/json";
+                        $scope.mailAdd = function () {
+                            $http({
+                                url: 'mailServlet',
+                                method: "POST",
+                                data: {
+                                    'mailid': $scope.mailid,
+                                    'mailsender': $scope.mailsender,
+                                    'mailreceiver': $scope.mailreceiver,
+                                    'mailobject': $scope.mailobject,
+                                    'mailsubject': $scope.mailsubject
+
+                                }
+                            }).then(function () {
+                                $http({
+                                    url: 'mailServlet',
+                                    method: "GET",
+                                }).then(function (response) {
+                                    $scope.mailList = response.data;
+                                    console.log($scope.mailList);
+                                }, function (response) {
+
+                                });
+                            });
+                        }
+                        $scope.deleteMail = function (mail) {
+                            alert(mail.mailid)
+                            $http(
+                                    {
+                                        url: 'mailServlet',
+                                        method: "DELETE",
+                                        data: {
+                                            'mailid': mail.mailid
+                                        }
+                                    }).then(function () {
+                                $http({
+                                    url: 'mailServlet',
+                                    method: "GET",
+                                }).then(function (response) {
+                                    $scope.mailList = response.data;
+                                    console.log($scope.mailList);
+                                }, function (response) {
+
+                                });
+                            });
+                        }
+
+                    });
+        </script>
+
+    </head>
+    <body ng-app="mailManager" ng-controller="mailController">
+
+        <div class ="form_group">
+            <form ng-submit="addMail()">
+                <label>Mail Identifier</label>
+                <input class="form-control" type="text" id="id" name="id" ng-model="mailid" placeholder="Email ID">
+                <br><br>
+                <label>Sender </label>
+                <input class="form-control" type="text" id="sender" name="sender" ng-model="mailsender" placeholder="Sender">
+                <br><br>
+                <label>Receiver </label>
+                <input class="form-control" type="text" id="receiver" name="receiver" ng-model="mailreceiver" placeholder="Receiver">
+                <br><br>
+                <label>Object</label>
+                <input class="form-control" type="text" id="object" name="object" ng-model="mailobject" placeholder="Object">
+                <br><br>
+                <label>Subject</label>
+                <input class="form-control" type="text" id="subject" name="subject" ng-model="mailsubject" placeholder="Subject">
+                <br><br>
+                <button ng-click="mailAdd()" class="btn ">Add A mail to the database </button>
+                <br><br>
+            </form>
+            <br><br><br>  
+            <br><br><br>  
+            <label>Search :</label>
+            <input type="text" id="search" ng-model="mailSearch" align="center" placeholder ="search">
+            <table align="center" border ="3px">
+                <tr>
+                    <th>Identifier</th>
+                    <th>Sender</th>
+                    <th>Receiver</th>
+                    <th>Object</th>
+                    <th>Subject</th>
+                </tr>
+                <tr ng-repeat="mail in mailList|filter:search">
+                    <td>{{mail.id}}</td>
+                    <td>{{mail.sender}}</td>
+                    <td>{{mail.receiver}}</td>
+                    <td>{{mail.object}}</td>
+                    <td>{{mail.subject}}</td>
+                    <td><button ng-click="deleteMail" >delete</button></td>
+                </tr>
+            </table>
+
+        </div>
+    </body>
+</html>
